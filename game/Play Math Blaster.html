@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Math Blaster: In Search of Spot</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<main id="app">
+ <div id="window" class="window">
+  <header class="titlebar"><img src="assets/MB4DLL_1802.png" alt=""><span id="windowTitle">Math Blaster: In Search of Spot</span><button id="fullscreen" aria-label="Toggle full screen" title="Full screen">▢</button></header>
+  <nav id="menubar" aria-label="Game menu"></nav>
+  <div id="viewport"><canvas id="game" width="640" height="425" tabindex="0" aria-label="Math Blaster game screen"></canvas><div id="ui"></div><div id="overlay"></div></div>
+  <footer class="statusbar"><span id="status">Loading original artwork…</span><span id="toolStatus" hidden aria-label="Treasure tools"></span><span id="subjectStatus">Addition</span><span id="levelStatus">Level 1</span><span id="playerStatus"></span><span id="scoreStatus">Score: 0</span></footer>
+ </div>
+ <div id="guidance"><span id="hint">Use the Activity menu to choose a mission or practice activity.</span><button id="helpButton">How to play</button><button id="muteButton" aria-pressed="false">Sound on</button></div>
+ <p id="subtitles" aria-live="polite"></p><span id="announcer" class="sr-only" aria-live="polite"></span>
+</main>
+<script src="resources.js"></script><script src="math.js"></script><script src="original-data.js"></script><script src="original-engine.js"></script><script src="cave-engine.js"></script><script src="effect-audio.js"></script><script src="sound-engine.js"></script><script src="game.js"></script>
+</body></html>
