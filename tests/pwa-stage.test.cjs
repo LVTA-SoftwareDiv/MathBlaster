@@ -66,4 +66,22 @@ for(const [width,height,insets] of [[844,390,{}],[667,320,{}],[1024,768,{}],[844
 backdrop.resize(1024,768,fitGame(1024,768));backdrop.begin('recycler');paints.length=0;backdrop.paint(image,34,true);
 assert.equal(paints.length,3);assert.equal(paints[0][7]/paints[0][8],640/425,'Recycler machine keeps its proportions');
 assert.equal(paints[1][4],1);assert.equal(paints[2][4],1,'top/bottom extensions cannot duplicate machine parts');
+const shadow={complete:true,naturalWidth:45,naturalHeight:46};
+for(const scene of ['blaster','bonus'])for(const [width,height] of [[844,390],[1024,768]]){
+ backdrop.begin(scene);backdrop.paint(image,20);backdrop.paintPlanet(shadow,90,61);
+ paints.length=0;backdrop.resize(width,height,fitGame(width,height));
+ const background=paints[0],overlay=paints[1];assert.equal(paints.length,2);
+ // Every corner of the eclipse must use the planet's background transform,
+ // rather than the centered, proportional foreground transform.
+ for(const [x,y] of [[90,61],[135,107]]){
+  const bgX=background[5]+(x-background[1])*background[7]/background[3],bgY=background[6]+(y-background[2])*background[8]/background[4];
+  const shadowX=overlay[1]+(x-90)*overlay[3]/45,shadowY=overlay[2]+(y-61)*overlay[4]/46;
+  assert(Math.abs(bgX-shadowX)<1e-9&&Math.abs(bgY-shadowY)<1e-9,'eclipse covers the actual background planet at every viewport size');
+ }
+ paints.length=0;backdrop.paintPlanet(shadow,90,61);assert.equal(paints.length,0,'unchanged eclipse frames do not redraw');
+ const explosion={complete:true,naturalWidth:63,naturalHeight:64};backdrop.paintPlanet(explosion,80,50);
+ assert.equal(paints[0][0],image,'redraw scenery to erase the previous eclipse/explosion frame');assert.equal(paints[1][0],explosion);
+ backdrop.begin('cave');assert.equal(backdrop.planet,null,'planet animation cannot leak into another activity');
+}
 console.log('Stage: proportional full-screen fit, connected Cave walls/openings/row heights, safe areas, scenery-only stretching, joystick dead zone, simultaneous thrust, outside release, touch-end fallback, capture failure and cancellation passed.');
+console.log('Eclipse: planet alignment at phone/iPad sizes, bonus scenes, explosion cleanup and scene changes passed.');
