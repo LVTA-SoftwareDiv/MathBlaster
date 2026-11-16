@@ -1,0 +1,11 @@
+build/
+dist/
+.cache/
+.DS_Store
+__pycache__/
+*.pyc
+node_modules/
+*.log
+.env*
+!.env.example
+game/assets/

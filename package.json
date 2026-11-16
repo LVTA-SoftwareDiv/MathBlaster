@@ -1,0 +1,1 @@
+{"name":"math-blaster","version":"1.2.0","private":true,"scripts":{"build:pwa":"python3 pwa/build.py","test:pwa":"node tests/pwa.test.cjs"}}
