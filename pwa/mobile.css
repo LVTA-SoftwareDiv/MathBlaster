@@ -30,3 +30,5 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}button:
 .answer-layout.chest-open #overlay{right:calc(var(--answer-control-width) + 30px);bottom:0}
 .answer-layout.chest-open #controls{position:fixed;left:auto;right:max(12px,env(safe-area-inset-right));top:50%;bottom:auto;transform:translateY(-50%);width:var(--answer-control-width);z-index:61}
 #updateNotice{z-index:110}
+/* Keep menus scrollable, but do not let browser zoom resize the game. */
+html,body,.launch-screen,#overlay,.dropdown,#controls{touch-action:pan-x pan-y}

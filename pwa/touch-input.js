@@ -8,4 +8,11 @@ class TouchHolds {
  clear(){for(const key of new Set(this.pointers.values()))this.send(key,false);this.pointers.clear();}
 }
 if(typeof module!=='undefined')module.exports={TouchHolds};
-else window.TouchHolds=TouchHolds;
+else {
+ window.TouchHolds=TouchHolds;
+ // Safari may ignore viewport scale limits. Cancel its zoom gestures without
+ // cancelling touch/pointer events needed for simultaneous thrust and steering.
+ const preventZoom=event=>event.preventDefault();
+ for(const type of ['gesturestart','gesturechange','gestureend','dblclick'])
+  document.addEventListener(type,preventZoom,{capture:true,passive:false});
+}
