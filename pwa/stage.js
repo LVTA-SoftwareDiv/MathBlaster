@@ -17,6 +17,23 @@ class MobileBackdrop {
   const {canvas,ctx,image,frame}=this,w=canvas.width,h=canvas.height;
   ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,w,h);
   if(!image?.complete||!image.naturalWidth)return;
+  if(this.scene==='cave'&&frame){
+   // Cave wall shelves are part of the background bitmap. Keep their joints
+   // with the 58-pixel rock cells aligned; stretching the entire bitmap leaves
+   // false openings between those shelves and the foreground platforms.
+   const {left,top,width,height}=frame,scale=width/640;
+   const firstJoint=left+64*scale,lastJoint=left+576*scale;
+   ctx.drawImage(image,0,this.sourceY,64,425,0,top,firstJoint,height);
+   ctx.drawImage(image,64,this.sourceY,512,425,firstJoint,top,lastJoint-firstJoint,height);
+   ctx.drawImage(image,576,this.sourceY,64,425,lastJoint,top,w-lastJoint,height);
+   // Taller tablets also need scenery above/below the game. Reflect a narrow
+   // texture strip after the wall joints are aligned, avoiding stretched pixels
+   // or duplicated shelves (which are farther than 15 source pixels away).
+   const strip=Math.min(15*scale,height),bottom=top+height;
+   if(top>0){ctx.save();ctx.translate(0,top);ctx.scale(1,-1);ctx.drawImage(canvas,0,top,w,strip,0,0,w,top);ctx.restore();}
+   if(bottom<h){ctx.save();ctx.translate(0,bottom);ctx.scale(1,-1);ctx.drawImage(canvas,0,bottom-strip,w,strip,0,-(h-bottom),w,h-bottom);ctx.restore();}
+   return;
+  }
   if(!this.preserveCenter||!frame){ctx.drawImage(image,0,this.sourceY,640,425,0,0,w,h);return;}
   // The Recycler's machine is baked into its room bitmap. Keep that central
   // image proportional and extend only its outer wall strips, never the machine.

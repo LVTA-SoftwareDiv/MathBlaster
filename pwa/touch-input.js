@@ -20,10 +20,39 @@ class HorizontalStick {
  end(pointer){if(pointer!==this.pointer)return false;this.holds.release(pointer);this.pointer=null;this.key=null;this.value=0;return true;}
  clear(){if(this.pointer!==null)this.end(this.pointer);}
 }
-if(typeof module!=='undefined')module.exports={TouchHolds,HorizontalStick};
+function bindHorizontalStick(element,stick,paint,valueAt,root=document){
+ let touchId=null,pointerType=null;
+ const finish=pointer=>{if(stick.end(pointer)){touchId=null;pointerType=null;paint();}};
+ element.addEventListener('pointerdown',event=>{
+  if(event.button!==undefined&&event.button!==0)return;
+  event.preventDefault();
+  if(!stick.start(event.pointerId,valueAt(event)))return;
+  touchId=null;pointerType=event.pointerType;
+  // Document listeners still handle release if capture is unavailable/lost.
+  try{element.setPointerCapture(event.pointerId);}catch(error){}
+  paint();
+ });
+ root.addEventListener('pointermove',event=>{
+  if(stick.pointer!==event.pointerId)return;
+  if(event.pointerType!=='touch'&&event.buttons===0){finish(event.pointerId);return;}
+  event.preventDefault();stick.move(event.pointerId,valueAt(event));paint();
+ },{capture:true,passive:false});
+ for(const type of ['pointerup','pointercancel'])root.addEventListener(type,event=>finish(event.pointerId),true);
+ element.addEventListener('lostpointercapture',event=>finish(event.pointerId));
+ // A touch-end fallback also clears the owning finger without interrupting a
+ // second finger that is still holding Thrust. Touch and pointer IDs differ.
+ element.addEventListener('touchstart',event=>{
+  if(pointerType==='touch'&&touchId===null&&event.changedTouches.length)touchId=event.changedTouches[0].identifier;
+ },{passive:true});
+ for(const type of ['touchend','touchcancel'])root.addEventListener(type,event=>{
+  if(pointerType==='touch'&&(touchId===null?event.touches.length===0:Array.from(event.changedTouches).some(t=>t.identifier===touchId)))finish(stick.pointer);
+ },{capture:true,passive:true});
+}
+if(typeof module!=='undefined')module.exports={TouchHolds,HorizontalStick,bindHorizontalStick};
 else {
  window.TouchHolds=TouchHolds;
  window.HorizontalStick=HorizontalStick;
+ window.bindHorizontalStick=bindHorizontalStick;
  // Safari may ignore viewport scale limits. Cancel its zoom gestures without
  // cancelling touch/pointer events needed for simultaneous thrust and steering.
  const preventZoom=event=>event.preventDefault();

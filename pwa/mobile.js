@@ -13,7 +13,8 @@ function requestFullScreen(){
 window.MBMobilePaused=true;
 const holds=new TouchHolds((key,down)=>window.MBTouchBridge?.hold(key,down));
 const stick=new HorizontalStick(holds);
-function paintStick(){const element=$('flightStick'),travel=Math.max(0,element.clientWidth/2-30);element.style.setProperty('--stick-offset',stick.value*travel+'px');element.setAttribute('aria-valuenow',String(stick.key==='ArrowLeft'?-1:stick.key==='ArrowRight'?1:0));element.setAttribute('aria-valuetext',stick.key==='ArrowLeft'?'Left':stick.key==='ArrowRight'?'Right':'Centered');element.classList.toggle('pressed',stick.pointer!==null);}
+function stickTravel(){return Math.max(1,$('flightStick').clientWidth/2-$('stickKnob').offsetWidth/2-4);}
+function paintStick(){const element=$('flightStick');element.style.setProperty('--stick-offset',stick.value*stickTravel()+'px');element.setAttribute('aria-valuenow',String(stick.key==='ArrowLeft'?-1:stick.key==='ArrowRight'?1:0));element.setAttribute('aria-valuetext',stick.key==='ArrowLeft'?'Left':stick.key==='ArrowRight'?'Right':'Centered');element.classList.toggle('pressed',stick.pointer!==null);}
 function release(){stick.clear();paintStick();holds.clear();window.MBTouchBridge?.release();document.querySelectorAll('[data-hold]').forEach(b=>b.classList.remove('pressed'));}
 function setMenu(open){
  menuOpen=open;release();document.body.classList.toggle('menu-open',open);
@@ -103,10 +104,8 @@ for(const button of document.querySelectorAll('[data-hold]')){
  button.addEventListener('contextmenu',e=>e.preventDefault());
 }
 const joystick=$('flightStick');
-const stickValue=event=>{const rect=joystick.getBoundingClientRect();return (event.clientX-rect.left-rect.width/2)/Math.max(1,rect.width/2-30);};
-joystick.addEventListener('pointerdown',event=>{event.preventDefault();if(stick.start(event.pointerId,stickValue(event))){joystick.setPointerCapture(event.pointerId);paintStick();}});
-joystick.addEventListener('pointermove',event=>{if(stick.pointer===event.pointerId){event.preventDefault();stick.move(event.pointerId,stickValue(event));paintStick();}});
-for(const type of ['pointerup','pointercancel','lostpointercapture'])joystick.addEventListener(type,event=>{if(stick.end(event.pointerId))paintStick();});
+const stickValue=event=>{const rect=joystick.getBoundingClientRect();return (event.clientX-rect.left-rect.width/2)/stickTravel();};
+bindHorizontalStick(joystick,stick,paintStick,stickValue);
 joystick.addEventListener('contextmenu',event=>event.preventDefault());
 joystick.addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight'].includes(event.key)){event.preventDefault();event.stopPropagation();const value=event.key==='ArrowLeft'?-1:1;if(stick.pointer===null)stick.start('keyboard',value);else stick.move('keyboard',value);paintStick();}});
 joystick.addEventListener('keyup',event=>{if(['ArrowLeft','ArrowRight'].includes(event.key)){event.stopPropagation();stick.end('keyboard');paintStick();}});
