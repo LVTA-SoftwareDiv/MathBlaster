@@ -111,6 +111,7 @@ function adaptDialogs(){
 function sync(){
  if(!started)return;
  const view=window.MBTouchBridge.view(),chest=!!$('chestAnswer');
+ document.body.classList.toggle('flight-layout',['cave','blaster','bonus'].includes(view.scene)&&!chest);
  let mode=chest?'answer':view.modal||view.menu?'none':['cave','blaster','bonus'].includes(view.scene)?'flight':view.scene==='recycler'?'recycler':view.scene==='movie'?'movie':$('answer')?'answer':view.scene==='zapper'?'zapper':'none';
  if(mode!==lastMode||view.generation!==lastGeneration){release();lastMode=mode;lastGeneration=view.generation;
   $('controls').dataset.mode=mode;app.dataset.scene=view.scene;
@@ -133,11 +134,16 @@ function layout(){
  const height=window.visualViewport?.height||innerHeight;
  document.documentElement.style.setProperty('--visible-height',height+'px');
  const wide=innerWidth>height*1.3&&height<600;document.body.classList.toggle('landscape-phone',wide);
+ const flight=document.body.classList.contains('flight-layout'),padding=getComputedStyle(document.body);
+ const availableWidth=Math.min(1100,innerWidth-parseFloat(padding.paddingLeft)-parseFloat(padding.paddingRight));
+ const side=Math.min(144,Math.max(100,availableWidth*.14));app.style.setProperty('--side-control-width',side+'px');
  const mode=$('controls').dataset.mode;
- const controlsHeight=mode==='answer'?260:mode==='recycler'?150:mode==='flight'?120:75;
- const available=wide?Math.max(140,height-96):Math.max(150,height-controlsHeight-100);
- const width=Math.min(960,innerWidth-(wide?232:20),available*640/425);
+ const controlsHeight=$('controls').getBoundingClientRect().height;
+ const verticalPadding=parseFloat(padding.paddingTop)+parseFloat(padding.paddingBottom);
+ const available=wide||flight?Math.max(140,height-verticalPadding-72):Math.max(140,height-verticalPadding-controlsHeight-86);
+ const width=Math.min(960,availableWidth-(flight?side*2+28:wide?218:0),available*640/425);
  app.style.setProperty('--board-width',Math.max(120,width)+'px');
 }
+new ResizeObserver(layout).observe($('controls'));
 layout();prepare();
 })();

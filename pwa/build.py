@@ -17,7 +17,9 @@ for p in (ROOT / 'game').iterdir():
 shutil.copytree(ROOT / 'game/assets', out / 'assets', dirs_exist_ok=True)
 for name in ('index.html', 'mobile.css', 'mobile.js', 'touch-input.js', 'manifest.webmanifest'):
     shutil.copyfile(ROOT / 'pwa' / name, out / name)
-shutil.copytree(ROOT / 'pwa/icons', out / 'icons', dirs_exist_ok=True)
+(out / 'icons').mkdir(exist_ok=True)
+for icon in (ROOT / 'pwa/icons').glob('*.png'):
+    shutil.copyfile(icon, out / 'icons' / icon.name)
 
 game = (out / 'game.js').read_text()
 def replace(before, after):
