@@ -8,9 +8,9 @@ The shared game source, original artwork and audio, Mac and Windows hosts, USB l
 
 The mobile edition requires **landscape orientation**. In portrait, the game pauses behind a rotate-device screen. Safari does not need to support orientation locking for this requirement to work.
 
-- Tap numbers on the answer pad, then Enter.
+- The equation, entered answer and number pad sit together on the right. Tap numbers, then Enter.
 - In the recycler, tap a column to select it; tap it again to push. Tap Check equation when ready.
-- In Cave Runner and Math Blaster, Thrust is on the left, the game is in the middle, and the direction arrows are on the right. Hold steering and Thrust together; release Thrust to fall.
+- In Cave Runner and Math Blaster, Thrust is on the left, the game is in the middle, and the wider direction arrows are on the right. The controls fill the usable screen height; the two arrow buttons split the right-hand panel equally. Hold steering and Thrust together; release Thrust to fall.
 - Tap floating trash to fire the zapper.
 - Use File → New Game to start a new mission.
 
@@ -38,12 +38,13 @@ Requires Python 3.9+; Node 22+ for tests. No package installation is needed.
 python3 pwa/build.py
 node tests/pwa.test.cjs
 node tests/pwa-game.test.cjs
+node tests/pwa-audio.test.cjs
 python3 -m http.server 8875 --bind 127.0.0.1 --directory dist
 ```
 
 Open `http://127.0.0.1:8875/`. Use a landscape viewport. For installation on a real device, host **all of `dist/` over HTTPS**. A LAN HTTP address is not sufficient for offline installation. The worker scope is relative, so a subdirectory host is supported. Serve `sw.js` as JavaScript without a long-lived HTTP cache; do not rewrite missing asset or pack requests to HTML.
 
-The original gameplay is shared with the desktop build. `pwa/build.py` applies a small, checked adapter for touch input, background saving, paused orientation changes, and predecoded movie audio. It does not replace the physics or cutscene timeline. Download packs are SHA-256 verified before becoming the active offline version. Updates require an explicit Save & update action.
+The original gameplay is shared with the desktop build. `pwa/build.py` applies a small, checked adapter for touch input, background saving, paused orientation changes, and predecoded movie audio. It does not replace the physics or cutscene timeline. Download packs are SHA-256 verified before becoming the active offline version. Updates require an explicit Save & update action. The Play and Resume taps activate the original audio using the iOS playback session (with a silent media fallback for older Safari), so sound uses media volume even in silent mode.
 
 ## Desktop builds
 
@@ -74,6 +75,7 @@ node tests/test-new-game-pace.cjs
 python3 pwa/build.py
 node tests/pwa.test.cjs
 node tests/pwa-game.test.cjs
+node tests/pwa-audio.test.cjs
 ```
 
 The audio tests compare every original PCM sample, exercise 2,200 delayed-completion sound cues, and run zapper hit/miss and recycler sequences. PWA tests cover independent fingers, cache completeness, corruption recovery, offline navigation, audio byte ranges and explicit updates. Real iPhone/iPad hardware testing is still required before claiming device compatibility has been verified.
