@@ -9,7 +9,7 @@ The shared game source, original artwork and audio, Mac and Windows hosts, USB l
 The mobile edition requires **landscape orientation**. In portrait, the game pauses behind a rotate-device screen. Safari does not need to support orientation locking for this requirement to work.
 
 - The equation, entered answer and number pad sit together on the right. Tap numbers, then Enter.
-- In the recycler, tap a column to select it; tap it again to push. Tap Check equation when ready.
+- In the recycler, use the original column buttons inside the game and tap its OK button to check the equation.
 - In Cave Runner and Math Blaster, Thrust is on the left, the game is in the middle, and the wider direction arrows are on the right. The controls fill the usable screen height; the two arrow buttons split the right-hand panel equally. Hold steering and Thrust together; release Thrust to fall.
 - Tap floating trash to fire the zapper.
 - Use File → New Game to start a new mission.
