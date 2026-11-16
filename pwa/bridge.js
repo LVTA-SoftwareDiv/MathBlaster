@@ -6,8 +6,6 @@ window.MBTouchBridge=Object.freeze({
   pointer.mode='keyboard';pointer.down=false;keys.add(key);
  },
  release(){keys.clear();pointer.down=false;},
- column(index){if(state.scene==='recycler'&&!state.modal&&!state.menu&&!window.MBMobilePaused&&Number.isInteger(index)&&index>=0&&index<5)selectRecycler(index);},
- check(){if(state.scene==='recycler'&&!state.modal&&!state.menu&&!window.MBMobilePaused)checkRecycler();},
  continueMovie(){if(state.scene==='movie'&&!state.modal&&!state.menu&&!window.MBMobilePaused)nextLine();},
  pause(paused){
   window.MBMobilePaused=!!paused;keys.clear();pointer.down=false;previous=Date.now();

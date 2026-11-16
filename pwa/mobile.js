@@ -80,8 +80,6 @@ for(const key of ['1','2','3','4','5','6','7','8','9','.','0','Backspace']){
  const button=document.createElement('button');button.textContent=key==='Backspace'?'⌫':key;button.setAttribute('aria-label',key==='Backspace'?'Delete last digit':key==='.'?'Decimal point':key);button.onclick=()=>answerKey(key);$('numberPad').querySelector('.digits').append(button);
 }
 $('answerEnter').onclick=()=>answerKey('Enter');
-for(let index=0;index<5;index++){const button=document.createElement('button');button.textContent=String(index+1);button.setAttribute('aria-label',`Column ${index+1}: select or push`);button.onclick=()=>window.MBTouchBridge?.column(index);$('recyclerPad').querySelector('.columns').append(button);}
-$('recyclerCheck').onclick=()=>window.MBTouchBridge?.check();
 $('movieContinue').onclick=()=>window.MBTouchBridge?.continueMovie();
 for(const button of document.querySelectorAll('[data-hold]')){
  button.addEventListener('pointerdown',event=>{event.preventDefault();button.setPointerCapture(event.pointerId);holds.press(event.pointerId,button.dataset.hold);button.classList.add('pressed');});
@@ -123,15 +121,16 @@ function sync(){
  let mode=chest?'answer':view.modal||view.menu?'none':['cave','blaster','bonus'].includes(view.scene)?'flight':view.scene==='recycler'?'recycler':view.scene==='movie'?'movie':$('answer')?'answer':view.scene==='zapper'?'zapper':'none';
  if(mode!==lastMode||view.generation!==lastGeneration){release();lastMode=mode;lastGeneration=view.generation;
   $('controls').dataset.mode=mode;app.dataset.scene=view.scene;
+  $('controls').hidden=view.scene==='recycler';
+  document.body.classList.toggle('recycler-layout',view.scene==='recycler');
   document.body.classList.toggle('answer-layout',mode==='answer');
-  $('numberPad').hidden=mode!=='answer';$('flightPad').hidden=mode!=='flight';$('recyclerPad').hidden=mode!=='recycler';$('movieContinue').hidden=mode!=='movie';
-  $('touchHint').textContent={answer:'Tap the missing number, then Enter.',flight:'Hold to fly. Release to fall.',recycler:'Tap a column to move. Tap it again to push.',zapper:'Tap the floating trash to zap it.',movie:'',none:''}[mode];
+  $('numberPad').hidden=mode!=='answer';$('flightPad').hidden=mode!=='flight';$('movieContinue').hidden=mode!=='movie';
+  $('touchHint').textContent={answer:'Tap the missing number, then Enter.',flight:'Hold to fly. Release to fall.',recycler:'',zapper:'Tap the floating trash to zap it.',movie:'',none:''}[mode];
   // The chest keypad stays below the dialog; other modal controls remain paused.
   document.body.classList.toggle('chest-open',chest);layout();
  }
  $('movieContinue').textContent=view.waiting?'Continue':'Skip scene';
  if(mode==='answer'){$('touchHint').textContent=($('chestAnswer')||$('answer'))?.getAttribute('aria-label')||'Enter the missing number.';syncAnswer();}
- [...$('recyclerPad').querySelectorAll('.columns button')].forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view.selected)));
  adaptDialogs();
 }
 new MutationObserver(()=>{if(started){adaptDialogs();sync();}}).observe($('overlay'),{childList:true,subtree:true});
@@ -148,11 +147,11 @@ function layout(){
  const availableWidth=Math.min(1100,innerWidth-parseFloat(padding.paddingLeft)-parseFloat(padding.paddingRight));
  const side=Math.min(144,Math.max(100,availableWidth*.14));app.style.setProperty('--side-control-width',side+'px');
  const steering=Math.min(240,Math.max(200,availableWidth*.26));app.style.setProperty('--steering-control-width',steering+'px');
- const mode=$('controls').dataset.mode;
+ const recycler=document.body.classList.contains('recycler-layout');
  const controlsHeight=$('controls').getBoundingClientRect().height;
  const verticalPadding=parseFloat(padding.paddingTop)+parseFloat(padding.paddingBottom);
- const available=wide||flight||answer?Math.max(140,height-verticalPadding-72):Math.max(140,height-verticalPadding-controlsHeight-86);
- const width=Math.min(960,availableWidth-(flight?side+steering+28:answer?answerSide+18:wide?218:0),available*640/425);
+ const available=wide||flight||answer||recycler?Math.max(140,height-verticalPadding-72):Math.max(140,height-verticalPadding-controlsHeight-86);
+ const width=Math.min(960,availableWidth-(flight?side+steering+28:answer?answerSide+18:wide&&!recycler?218:0),available*640/425);
  app.style.setProperty('--board-width',Math.max(120,width)+'px');
 }
 new ResizeObserver(layout).observe($('controls'));
