@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+ <meta name="theme-color" content="#101c2e"><meta name="apple-mobile-web-app-capable" content="yes">
+ <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+ <meta name="apple-mobile-web-app-title" content="Math Blaster">
+ <title>Math Blaster: In Search of Spot</title>
+ <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+ <link rel="icon" href="icons/icon-192.png"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="mobile.css">
+</head><body>
+<section id="launch" class="launch-screen" aria-label="Launch Math Blaster">
+ <div class="launch-card"><img class="launch-icon" src="icons/icon-192.png" alt="Blasternaut">
+ <p class="eyebrow">IN SEARCH OF SPOT</p><h1>Math Blaster</h1>
+ <p id="loadStatus" role="status">Preparing your mission…</p><progress id="loadProgress" max="100" value="0" aria-label="Download progress"></progress>
+ <button id="play" class="primary-touch" disabled>Getting ready…</button>
+ <p id="installHelp">On your iPhone or iPad, open Safari’s Share menu and choose <strong>Add to Home Screen</strong>. Open the added app once online to finish its download.</p>
+ <p class="download-note">Your progress stays on this device.</p>
+ </div>
+</section>
+<section id="rotateScreen" class="launch-screen" aria-label="Landscape required"><div class="launch-card"><div class="rotate-device" aria-hidden="true">↻</div><h2>Rotate your device</h2><p>Math Blaster is played in landscape.</p><p class="download-note">Turn your iPhone or iPad sideways to continue.</p></div></section>
+<main id="app" inert>
+ <div id="window" class="window">
+  <header class="titlebar"><span id="windowTitle">Math Blaster: In Search of Spot</span><button id="fullscreen" aria-label="Toggle full screen">▢</button></header>
+  <nav id="menubar" aria-label="Game menu"></nav>
+  <div id="viewport"><canvas id="game" width="640" height="425" tabindex="0" aria-label="Math Blaster game screen"></canvas><div id="ui"></div></div>
+  <footer class="statusbar"><span id="status">Ready</span><span id="toolStatus" hidden aria-label="Treasure tools"></span><span id="subjectStatus">Addition</span><span id="levelStatus">Level 1</span><span id="playerStatus"></span><span id="scoreStatus">Score: 0</span></footer>
+ </div>
+ <section id="controls" aria-label="Touch controls" data-mode="none">
+  <p id="touchHint" aria-live="polite"></p>
+  <div id="numberPad" hidden aria-label="Answer keypad"><div class="digits"></div><button id="answerEnter" class="primary-touch">Enter</button></div>
+  <div id="flightPad" hidden><div class="directions"><button data-hold="ArrowLeft" aria-label="Move left">◀</button><button data-hold="ArrowRight" aria-label="Move right">▶</button></div><button data-hold=" " class="primary-touch thrust" aria-label="Hold to thrust">Thrust <span>hold</span></button></div>
+  <div id="recyclerPad" hidden><div class="columns" aria-label="Recycler columns"></div><button id="recyclerCheck" class="primary-touch">Check equation</button></div>
+  <button id="movieContinue" hidden>Skip scene</button>
+ </section>
+ <div id="guidance"><span id="hint"></span><button id="helpButton">How to play</button><button id="muteButton">Sound on</button></div>
+ <p id="subtitles" aria-live="polite"></p><span id="announcer" class="sr-only" aria-live="polite"></span>
+ <div id="overlay"></div>
+</main>
+<section id="resumeScreen" class="launch-screen" hidden aria-label="Game paused"><div class="launch-card"><h2>Ready to keep playing?</h2><button id="resume" class="primary-touch">Resume game</button></div></section>
+<aside id="updateNotice" hidden><span>A game update is ready.</span><button id="update">Save &amp; update</button><button id="later">Later</button></aside>
+<noscript>This game needs JavaScript enabled in Safari.</noscript>
+<script src="touch-input.js"></script><script src="mobile.js"></script>
+</body></html>

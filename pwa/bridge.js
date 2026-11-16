@@ -1,0 +1,19 @@
+window.MBTouchBridge=Object.freeze({
+ hold(key,down){
+  if(!['ArrowLeft','ArrowRight',' '].includes(key))return;
+  if(!down){keys.delete(key);return;}
+  if(state.modal||state.menu||window.MBMobilePaused||!['cave','blaster','bonus'].includes(state.scene))return;
+  pointer.mode='keyboard';pointer.down=false;keys.add(key);
+ },
+ release(){keys.clear();pointer.down=false;},
+ column(index){if(state.scene==='recycler'&&!state.modal&&!state.menu&&!window.MBMobilePaused&&Number.isInteger(index)&&index>=0&&index<5)selectRecycler(index);},
+ check(){if(state.scene==='recycler'&&!state.modal&&!state.menu&&!window.MBMobilePaused)checkRecycler();},
+ continueMovie(){if(state.scene==='movie'&&!state.modal&&!state.menu&&!window.MBMobilePaused)nextLine();},
+ pause(paused){
+  window.MBMobilePaused=!!paused;keys.clear();pointer.down=false;previous=Date.now();
+  if(paused){snapshot();for(const a of effects)a.pause();}
+  else if(settings.sound&&!state.modal&&!state.focusPaused)for(const a of effects)a.play().catch(()=>{});
+ },
+ view(){return {scene:state.scene,modal:state.modal,menu:state.menu,generation:state.generation,
+  mode:activity?.mode,selected:activity?.selected,waiting:!!movie?.waiting};}
+});
