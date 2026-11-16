@@ -3,11 +3,12 @@
 const $=id=>document.getElementById(id),app=$('app'),launch=$('launch'),play=$('play'),status=$('loadStatus');
 let registration,started=false,prepared=false,booting=false,lastMode='',lastGeneration=-1;
 const portrait=matchMedia('(orientation: portrait)');
+const mobileAudio=new MBMobileAudio();
 function requestLandscape(){try{screen.orientation?.lock?.('landscape').catch(()=>{});}catch(error){}}
 window.MBMobilePaused=true;
 const holds=new TouchHolds((key,down)=>window.MBTouchBridge?.hold(key,down));
 function release(){holds.clear();window.MBTouchBridge?.release();document.querySelectorAll('[data-hold]').forEach(b=>b.classList.remove('pressed'));}
-function showResume(){if(!started)return;release();window.MBTouchBridge.pause(true);$('resumeScreen').hidden=false;app.inert=true;}
+function showResume(){if(!started)return;release();window.MBTouchBridge.pause(true);mobileAudio.pause();$('resumeScreen').hidden=false;app.inert=true;}
 function loadScript(src){return new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=src;script.onload=resolve;script.onerror=()=>reject(Error('Could not load '+src));document.head.append(script);});}
 function workerStatus(worker){return new Promise((resolve,reject)=>{const channel=new MessageChannel(),timer=setTimeout(()=>reject(Error('Offline storage did not respond.')),15000);channel.port1.onmessage=e=>{clearTimeout(timer);channel.port1.close();resolve(e.data);};worker.postMessage({type:'STATUS'},[channel.port2]);});}
 async function offlineReady(){
@@ -42,6 +43,7 @@ async function prepare(){
   for(const file of ['resources.js','math.js','original-data.js','original-engine.js','cave-engine.js','effect-audio.js','sound-engine.js'])await loadScript(file);
   const bank=new MBSound.SampleBank(MB_EFFECT_AUDIO);if(!bank.context)throw Error('Audio could not start. Close other audio apps and try again.');
   window.MBMobileAudioBank=bank;
+  mobileAudio.bank=bank;
   const files=new Set(Object.values(MB_ORIGINAL_DATA.scenes).flatMap(s=>(s.audio.parts||[s.audio]).map(p=>p.file)));
   for(const file of files){const response=await fetch('assets/'+file);if(!response.ok)throw Error('A cutscene could not be loaded.');bank.buffers.set(file,await bank.context.decodeAudioData(await response.arrayBuffer()));}
   prepared=true;status.textContent='Ready for offline play';play.disabled=false;play.textContent='Play';$('loadProgress').hidden=true;
@@ -53,13 +55,13 @@ async function begin(){
  if(!prepared||started||portrait.matches)return;play.disabled=true;requestLandscape();
  try{
   // Resume occurs directly in the tap handler, before any asynchronous loading.
-  const unlocked=window.MBMobileAudioBank.unlock();await unlocked;
+  const unlocked=mobileAudio.unlock();await unlocked;
   await loadScript('game.js');started=true;app.inert=false;launch.hidden=true;
   window.MBTouchBridge.pause(false);sync();navigator.storage?.persist?.().catch(()=>{});
  }catch(error){status.textContent='Could not start the game. Tap to try again.';play.disabled=false;}
 }
 play.onclick=begin;
-$('resume').onclick=async()=>{if(portrait.matches)return;requestLandscape();try{await window.MBMobileAudioBank.unlock();$('resumeScreen').hidden=true;app.inert=false;window.MBTouchBridge.pause(false);}catch(error){$('resume').textContent='Tap to resume sound';}};
+$('resume').onclick=async()=>{if(portrait.matches)return;requestLandscape();try{await mobileAudio.unlock();$('resumeScreen').hidden=true;app.inert=false;window.MBTouchBridge.pause(false);}catch(error){$('resume').textContent='Tap to resume sound';}};
 $('later').onclick=()=>$('updateNotice').hidden=true;
 $('update').onclick=()=>{release();window.MBTouchBridge?.pause(true);navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload(),{once:true});registration?.waiting?.postMessage({type:'APPLY_UPDATE'});};
 if(matchMedia('(display-mode: standalone)').matches||navigator.standalone)$('installHelp').hidden=true;
@@ -67,6 +69,12 @@ if(matchMedia('(display-mode: standalone)').matches||navigator.standalone)$('ins
 function answerKey(key){
  const input=$('chestAnswer')||$('answer');if(!input||input.disabled||input.closest('[inert]')||window.MBMobilePaused)return;
  input.focus({preventScroll:true});input.dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true,cancelable:true}));
+ syncAnswer();
+}
+function syncAnswer(){
+ const input=$('chestAnswer')||$('answer'),value=input?.value.trim()||'—';
+ if($('answerDisplay').textContent!==value)$('answerDisplay').textContent=value;
+ for(const button of $('numberPad').querySelectorAll('button'))button.disabled=!input||input.disabled;
 }
 for(const key of ['1','2','3','4','5','6','7','8','9','.','0','Backspace']){
  const button=document.createElement('button');button.textContent=key==='Backspace'?'⌫':key;button.setAttribute('aria-label',key==='Backspace'?'Delete last digit':key==='.'?'Decimal point':key);button.onclick=()=>answerKey(key);$('numberPad').querySelector('.digits').append(button);
@@ -115,13 +123,14 @@ function sync(){
  let mode=chest?'answer':view.modal||view.menu?'none':['cave','blaster','bonus'].includes(view.scene)?'flight':view.scene==='recycler'?'recycler':view.scene==='movie'?'movie':$('answer')?'answer':view.scene==='zapper'?'zapper':'none';
  if(mode!==lastMode||view.generation!==lastGeneration){release();lastMode=mode;lastGeneration=view.generation;
   $('controls').dataset.mode=mode;app.dataset.scene=view.scene;
+  document.body.classList.toggle('answer-layout',mode==='answer');
   $('numberPad').hidden=mode!=='answer';$('flightPad').hidden=mode!=='flight';$('recyclerPad').hidden=mode!=='recycler';$('movieContinue').hidden=mode!=='movie';
   $('touchHint').textContent={answer:'Tap the missing number, then Enter.',flight:'Hold to fly. Release to fall.',recycler:'Tap a column to move. Tap it again to push.',zapper:'Tap the floating trash to zap it.',movie:'',none:''}[mode];
   // The chest keypad stays below the dialog; other modal controls remain paused.
   document.body.classList.toggle('chest-open',chest);layout();
  }
  $('movieContinue').textContent=view.waiting?'Continue':'Skip scene';
- if(mode==='answer')$('touchHint').textContent=($('chestAnswer')||$('answer'))?.getAttribute('aria-label')||'Enter the missing number.';
+ if(mode==='answer'){$('touchHint').textContent=($('chestAnswer')||$('answer'))?.getAttribute('aria-label')||'Enter the missing number.';syncAnswer();}
  [...$('recyclerPad').querySelectorAll('.columns button')].forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view.selected)));
  adaptDialogs();
 }
@@ -134,14 +143,16 @@ function layout(){
  const height=window.visualViewport?.height||innerHeight;
  document.documentElement.style.setProperty('--visible-height',height+'px');
  const wide=innerWidth>height*1.3&&height<600;document.body.classList.toggle('landscape-phone',wide);
- const flight=document.body.classList.contains('flight-layout'),padding=getComputedStyle(document.body);
+ const flight=document.body.classList.contains('flight-layout'),answer=document.body.classList.contains('answer-layout'),padding=getComputedStyle(document.body);
+ const answerSide=wide?200:250;app.style.setProperty('--answer-control-width',answerSide+'px');
  const availableWidth=Math.min(1100,innerWidth-parseFloat(padding.paddingLeft)-parseFloat(padding.paddingRight));
  const side=Math.min(144,Math.max(100,availableWidth*.14));app.style.setProperty('--side-control-width',side+'px');
+ const steering=Math.min(240,Math.max(200,availableWidth*.26));app.style.setProperty('--steering-control-width',steering+'px');
  const mode=$('controls').dataset.mode;
  const controlsHeight=$('controls').getBoundingClientRect().height;
  const verticalPadding=parseFloat(padding.paddingTop)+parseFloat(padding.paddingBottom);
- const available=wide||flight?Math.max(140,height-verticalPadding-72):Math.max(140,height-verticalPadding-controlsHeight-86);
- const width=Math.min(960,availableWidth-(flight?side*2+28:wide?218:0),available*640/425);
+ const available=wide||flight||answer?Math.max(140,height-verticalPadding-72):Math.max(140,height-verticalPadding-controlsHeight-86);
+ const width=Math.min(960,availableWidth-(flight?side+steering+28:answer?answerSide+18:wide?218:0),available*640/425);
  app.style.setProperty('--board-width',Math.max(120,width)+'px');
 }
 new ResizeObserver(layout).observe($('controls'));

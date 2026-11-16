@@ -1,6 +1,6 @@
 """Build the touch PWA from the unchanged, shared desktop game. Python 3 only."""
 from pathlib import Path
-import argparse, hashlib, json, mimetypes, shutil, sys
+import argparse, hashlib, json, mimetypes, shutil, sys, wave
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
@@ -15,8 +15,11 @@ for p in (ROOT / 'game').iterdir():
     if p.is_file() and p.suffix in ('.js', '.css'):
         shutil.copyfile(p, out / p.name)
 shutil.copytree(ROOT / 'game/assets', out / 'assets', dirs_exist_ok=True)
-for name in ('index.html', 'mobile.css', 'mobile.js', 'touch-input.js', 'manifest.webmanifest'):
+for name in ('index.html', 'mobile.css', 'mobile.js', 'mobile-audio.js', 'touch-input.js', 'manifest.webmanifest'):
     shutil.copyfile(ROOT / 'pwa' / name, out / name)
+with wave.open(str(out / 'audio-unlock.wav'), 'wb') as silence:
+    silence.setparams((1, 1, 22050, 22050, 'NONE', 'not compressed'))
+    silence.writeframes(bytes([128]) * 22050)
 (out / 'icons').mkdir(exist_ok=True)
 for icon in (ROOT / 'pwa/icons').glob('*.png'):
     shutil.copyfile(icon, out / 'icons' / icon.name)

@@ -27,7 +27,7 @@
  </div>
  <section id="controls" aria-label="Touch controls" data-mode="none">
   <p id="touchHint" aria-live="polite"></p>
-  <div id="numberPad" hidden aria-label="Answer keypad"><div class="digits"></div><button id="answerEnter" class="primary-touch">Enter</button></div>
+  <div id="numberPad" hidden aria-label="Answer keypad"><output id="answerDisplay" aria-label="Your answer" aria-live="polite">—</output><div class="digits"></div><button id="answerEnter" class="primary-touch">Enter</button></div>
   <div id="flightPad" hidden><div class="directions"><button data-hold="ArrowLeft" aria-label="Move left">◀</button><button data-hold="ArrowRight" aria-label="Move right">▶</button></div><button data-hold=" " class="primary-touch thrust" aria-label="Hold to thrust">Thrust <span>hold</span></button></div>
   <div id="recyclerPad" hidden><div class="columns" aria-label="Recycler columns"></div><button id="recyclerCheck" class="primary-touch">Check equation</button></div>
   <button id="movieContinue" hidden>Skip scene</button>
@@ -39,5 +39,5 @@
 <section id="resumeScreen" class="launch-screen" hidden aria-label="Game paused"><div class="launch-card"><h2>Ready to keep playing?</h2><button id="resume" class="primary-touch">Resume game</button></div></section>
 <aside id="updateNotice" hidden><span>A game update is ready.</span><button id="update">Save &amp; update</button><button id="later">Later</button></aside>
 <noscript>This game needs JavaScript enabled in Safari.</noscript>
-<script src="touch-input.js"></script><script src="mobile.js"></script>
+<script src="touch-input.js"></script><script src="mobile-audio.js"></script><script src="mobile.js"></script>
 </body></html>

@@ -15,3 +15,17 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}button:
 @media(orientation:portrait){#rotateScreen{display:flex!important}}
 @media(orientation:landscape){#rotateScreen{display:none!important}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+.flight-layout #app{grid-template-columns:var(--side-control-width) minmax(0,var(--board-width)) var(--steering-control-width)}
+.flight-layout .directions button{min-width:96px;min-height:96px;height:100%;font-size:32px!important}
+.flight-layout .directions{position:fixed;right:max(10px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));bottom:max(10px,env(safe-area-inset-bottom));width:var(--steering-control-width);z-index:3}
+.flight-layout #flightPad .thrust{position:fixed;left:max(10px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));bottom:max(10px,env(safe-area-inset-bottom));width:var(--side-control-width);height:auto;z-index:3}
+/* Keep the equation, entered answer and keypad together beside the game. */
+.answer-layout #app{display:grid;grid-template-columns:minmax(0,var(--board-width)) var(--answer-control-width);justify-content:center;align-items:center;gap:18px}
+.answer-layout .window{width:100%;grid-column:1;grid-row:1}
+.answer-layout #controls{grid-column:2;grid-row:1;width:var(--answer-control-width);max-height:calc(var(--visible-height) - max(10px,env(safe-area-inset-top)) - max(10px,env(safe-area-inset-bottom)));overflow:auto}
+.answer-layout #numberPad{display:grid;grid-template-columns:1fr;gap:6px}
+.answer-layout #touchHint{margin-bottom:6px}
+#answerDisplay{display:block;width:100%;min-height:40px;padding:5px 10px;border:1px solid #7b99b9;border-radius:8px;background:#0b1627;color:var(--gold);font:600 26px/28px Arial,sans-serif;text-align:right;font-variant-numeric:tabular-nums}
+.answer-layout #answerEnter{padding:5px;min-height:44px}
+.answer-layout.chest-open #overlay{right:calc(var(--answer-control-width) + 30px);bottom:0}
+.answer-layout.chest-open #controls{position:fixed;left:auto;right:max(12px,env(safe-area-inset-right));top:50%;bottom:auto;transform:translateY(-50%);width:var(--answer-control-width);z-index:61}
