@@ -3,6 +3,14 @@ function paintMobileBackground(id,y,sourceY,preserveCenter=false){
  if(window.MBMobileBackdrop&&image.complete&&image.naturalWidth){window.MBMobileBackdrop.paint(image,sourceY,preserveCenter);if(!preserveCenter)return;}
  draw(id,0,y);
 }
+function paintMobilePlanet(){
+ const failure=activity.failure||activity.planetFailureFrame!=null;
+ const track=failure?D.blaster.tracks[33]:D.eclipse;
+ const frame=failure?(activity.failure?.frame??activity.planetFailureFrame):Math.min(44,activity.eclipse?.frame??0);
+ const f=track.frames[frame],b=D.bitmaps[f[0]],id=b.variants?.[track.mask]||b.hi;
+ if(window.MBMobileBackdrop){window.MBMobileBackdrop.paintPlanet(img(id),f[1],f[2]);return;}
+ draw(id,f[1],f[2]-20);
+}
 window.MBTouchBridge=Object.freeze({
  hold(key,down){
   if(!['ArrowLeft','ArrowRight',' '].includes(key))return;

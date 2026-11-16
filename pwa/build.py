@@ -44,6 +44,7 @@ replace("draw('MB4DLL_1788',0,-34);", "paintMobileBackground('MB4DLL_1788',-34,3
 replace("ctx.translate(0,-34);draw('MB4DLL_1908',0,0);", "ctx.translate(0,-34);paintMobileBackground('MB4DLL_1908',0,34,true);")
 replace("draw(bitmap.hi,0,-20);", "paintMobileBackground(bitmap.hi,-20,35);")
 replace("draw('MB4DLL_1098',0,-20);", "paintMobileBackground('MB4DLL_1098',-20,20);")
+replace("if(activity.failure||activity.planetFailureFrame!=null)sprite(33,activity.failure?.frame??activity.planetFailureFrame);else drawEclipse();", "paintMobilePlanet();")
 replace("ctx.imageSmoothingEnabled=false;ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);switch(state.scene)", "ctx.imageSmoothingEnabled=false;if(window.MBMobileBackdrop){window.MBMobileBackdrop.begin(state.scene);ctx.clearRect(0,0,W,H);}else{ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);}switch(state.scene)")
 # Touch buttons call the same actions as the original keyboard/mouse. They have
 # no access to answers, physics state, score mutation, or scene skipping hooks.
