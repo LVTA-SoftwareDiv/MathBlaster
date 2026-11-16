@@ -6,13 +6,15 @@ The shared game source, original artwork and audio, Mac and Windows hosts, USB l
 
 [Open the touch edition](https://math-blaster-spot-touch.lehigh-valle-5669.chatgpt.site). The game is public; no sign-in is required.
 
+The game fills the available screen. Decorative scenery stretches to the edges; characters, platforms, numbers, machinery and collision coordinates retain their original proportions. The Recycler room extends only its outer wall strips because its original background contains the machine. Cutscenes stay proportional. On iPhone, open the Home Screen app for playback without Safari’s bars.
+
 The mobile edition requires **landscape orientation**. In portrait, the game pauses behind a rotate-device screen. Safari does not need to support orientation locking for this requirement to work.
 
-- The equation, entered answer and number pad sit together on the right. Tap numbers, then Enter.
+- The equation, entered answer and number pad float on the right in Trash Zapper. Tap numbers, then Enter.
 - In the recycler, use the original column buttons inside the game and tap its OK button to check the equation.
-- In Cave Runner and Math Blaster, Thrust is on the left, the game is in the middle, and the wider direction arrows are on the right. The controls fill the usable screen height; the two arrow buttons split the right-hand panel equally. Hold steering and Thrust together; release Thrust to fall.
+- In Cave Runner and Math Blaster, hold the transparent Thrust button at the bottom left and drag the horizontal joystick at the bottom right. Center or release the joystick to stop steering; release Thrust to fall.
 - Tap floating trash to fire the zapper.
-- Use File → New Game to start a new mission.
+- Tap Menu at the top left to access File, Activity, Options and the other original menus. Use File → New Game to start a new mission.
 
 In Safari, use Share → Add to Home Screen. Open the installed app once online and wait for **Ready for offline play**. The initial game download is about 26 MB. Saves stay on that device; clearing Safari/site data removes them. iOS may reclaim website storage, so keep the link for downloading again if needed.
 
@@ -39,6 +41,7 @@ python3 pwa/build.py
 node tests/pwa.test.cjs
 node tests/pwa-game.test.cjs
 node tests/pwa-audio.test.cjs
+node tests/pwa-stage.test.cjs
 python3 -m http.server 8875 --bind 127.0.0.1 --directory dist
 ```
 
@@ -76,6 +79,7 @@ python3 pwa/build.py
 node tests/pwa.test.cjs
 node tests/pwa-game.test.cjs
 node tests/pwa-audio.test.cjs
+node tests/pwa-stage.test.cjs
 ```
 
 The audio tests compare every original PCM sample, exercise 2,200 delayed-completion sound cues, and run zapper hit/miss and recycler sequences. PWA tests cover independent fingers, cache completeness, corruption recovery, offline navigation, audio byte ranges and explicit updates. Real iPhone/iPad hardware testing is still required before claiming device compatibility has been verified.
