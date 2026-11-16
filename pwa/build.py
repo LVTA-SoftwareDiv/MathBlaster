@@ -15,7 +15,7 @@ for p in (ROOT / 'game').iterdir():
     if p.is_file() and p.suffix in ('.js', '.css'):
         shutil.copyfile(p, out / p.name)
 shutil.copytree(ROOT / 'game/assets', out / 'assets', dirs_exist_ok=True)
-for name in ('index.html', 'mobile.css', 'mobile.js', 'mobile-audio.js', 'touch-input.js', 'manifest.webmanifest'):
+for name in ('index.html', 'mobile.css', 'mobile.js', 'mobile-audio.js', 'touch-input.js', 'stage.js', 'manifest.webmanifest'):
     shutil.copyfile(ROOT / 'pwa' / name, out / name)
 with wave.open(str(out / 'audio-unlock.wav'), 'wb') as silence:
     silence.setparams((1, 1, 22050, 22050, 'NONE', 'not compressed'))
@@ -38,6 +38,13 @@ replace("if(!((state.modal&&!state.nativeTip?.active)", "if(!(window.MBMobilePau
 replace("if(!state.modal&&settings.sound)for", "if(!window.MBMobilePaused&&!state.modal&&settings.sound)for")
 replace("else if(settings.sound&&!state.modal&&!state.focusPaused)for", "else if(!window.MBMobilePaused&&settings.sound&&!state.modal&&!state.focusPaused)for")
 replace("window.addEventListener('beforeunload',snapshot);", "window.addEventListener('beforeunload',snapshot);\nwindow.addEventListener('pagehide',()=>{keys.clear();pointer.down=false;snapshot();});")
+# Only decorative scenery stretches. All actors, terrain, UI coordinates and
+# collision calculations remain in the original, uniformly scaled 640×425 space.
+replace("draw('MB4DLL_1788',0,-34);", "paintMobileBackground('MB4DLL_1788',-34,34);")
+replace("ctx.translate(0,-34);draw('MB4DLL_1908',0,0);", "ctx.translate(0,-34);paintMobileBackground('MB4DLL_1908',0,34,true);")
+replace("draw(bitmap.hi,0,-20);", "paintMobileBackground(bitmap.hi,-20,35);")
+replace("draw('MB4DLL_1098',0,-20);", "paintMobileBackground('MB4DLL_1098',-20,20);")
+replace("ctx.imageSmoothingEnabled=false;ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);switch(state.scene)", "ctx.imageSmoothingEnabled=false;if(window.MBMobileBackdrop){window.MBMobileBackdrop.begin(state.scene);ctx.clearRect(0,0,W,H);}else{ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);}switch(state.scene)")
 # Touch buttons call the same actions as the original keyboard/mouse. They have
 # no access to answers, physics state, score mutation, or scene skipping hooks.
 bridge = (ROOT / 'pwa/bridge.js').read_text()

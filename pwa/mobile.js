@@ -1,13 +1,27 @@
 'use strict';
 (() => {
 const $=id=>document.getElementById(id),app=$('app'),launch=$('launch'),play=$('play'),status=$('loadStatus');
-let registration,started=false,prepared=false,booting=false,lastMode='',lastGeneration=-1;
+let registration,started=false,prepared=false,booting=false,lastMode='',lastGeneration=-1,menuOpen=false;
 const portrait=matchMedia('(orientation: portrait)');
 const mobileAudio=new MBMobileAudio();
+window.MBMobileBackdrop=new MobileBackdrop($('stageBackdrop'));
 function requestLandscape(){try{screen.orientation?.lock?.('landscape').catch(()=>{});}catch(error){}}
+function requestFullScreen(){
+ if(document.fullscreenElement||navigator.standalone||matchMedia('(display-mode: standalone)').matches)return;
+ try{document.documentElement.requestFullscreen?.({navigationUI:'hide'}).then(requestLandscape).catch(()=>{});}catch(error){}
+}
 window.MBMobilePaused=true;
 const holds=new TouchHolds((key,down)=>window.MBTouchBridge?.hold(key,down));
-function release(){holds.clear();window.MBTouchBridge?.release();document.querySelectorAll('[data-hold]').forEach(b=>b.classList.remove('pressed'));}
+const stick=new HorizontalStick(holds);
+function paintStick(){const element=$('flightStick'),travel=Math.max(0,element.clientWidth/2-30);element.style.setProperty('--stick-offset',stick.value*travel+'px');element.setAttribute('aria-valuenow',String(stick.key==='ArrowLeft'?-1:stick.key==='ArrowRight'?1:0));element.setAttribute('aria-valuetext',stick.key==='ArrowLeft'?'Left':stick.key==='ArrowRight'?'Right':'Centered');element.classList.toggle('pressed',stick.pointer!==null);}
+function release(){stick.clear();paintStick();holds.clear();window.MBTouchBridge?.release();document.querySelectorAll('[data-hold]').forEach(b=>b.classList.remove('pressed'));}
+function setMenu(open){
+ menuOpen=open;release();document.body.classList.toggle('menu-open',open);
+ $('menuToggle').setAttribute('aria-expanded',String(open));$('menuToggle').setAttribute('aria-label',open?'Close game menu':'Open game menu');$('menuToggle').textContent=open?'✕ Close':'☰ Menu';
+ if(!open)window.MBTouchBridge?.closeMenu();
+ if(started)window.MBTouchBridge.pause(open||portrait.matches||!$('resumeScreen').hidden);
+ sync();
+}
 function showResume(){if(!started)return;release();window.MBTouchBridge.pause(true);mobileAudio.pause();$('resumeScreen').hidden=false;app.inert=true;}
 function loadScript(src){return new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=src;script.onload=resolve;script.onerror=()=>reject(Error('Could not load '+src));document.head.append(script);});}
 function workerStatus(worker){return new Promise((resolve,reject)=>{const channel=new MessageChannel(),timer=setTimeout(()=>reject(Error('Offline storage did not respond.')),15000);channel.port1.onmessage=e=>{clearTimeout(timer);channel.port1.close();resolve(e.data);};worker.postMessage({type:'STATUS'},[channel.port2]);});}
@@ -55,13 +69,14 @@ async function begin(){
  if(!prepared||started||portrait.matches)return;play.disabled=true;requestLandscape();
  try{
   // Resume occurs directly in the tap handler, before any asynchronous loading.
-  const unlocked=mobileAudio.unlock();await unlocked;
-  await loadScript('game.js');started=true;app.inert=false;launch.hidden=true;
+  const unlocked=mobileAudio.unlock();requestFullScreen();await unlocked;
+  await loadScript('game.js');started=true;document.body.classList.add('playing');app.inert=false;launch.hidden=true;
   window.MBTouchBridge.pause(false);sync();navigator.storage?.persist?.().catch(()=>{});
  }catch(error){status.textContent='Could not start the game. Tap to try again.';play.disabled=false;}
 }
 play.onclick=begin;
-$('resume').onclick=async()=>{if(portrait.matches)return;requestLandscape();try{await mobileAudio.unlock();$('resumeScreen').hidden=true;app.inert=false;window.MBTouchBridge.pause(false);}catch(error){$('resume').textContent='Tap to resume sound';}};
+$('resume').onclick=async()=>{if(portrait.matches)return;requestLandscape();try{const unlocked=mobileAudio.unlock();requestFullScreen();await unlocked;$('resumeScreen').hidden=true;app.inert=false;window.MBTouchBridge.pause(menuOpen);}catch(error){$('resume').textContent='Tap to resume sound';}};
+$('menuToggle').onclick=()=>setMenu(!menuOpen);
 $('later').onclick=()=>$('updateNotice').hidden=true;
 $('update').onclick=()=>{release();window.MBTouchBridge?.pause(true);navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload(),{once:true});registration?.waiting?.postMessage({type:'APPLY_UPDATE'});};
 if(matchMedia('(display-mode: standalone)').matches||navigator.standalone)$('installHelp').hidden=true;
@@ -87,14 +102,24 @@ for(const button of document.querySelectorAll('[data-hold]')){
  for(const type of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(type,up);
  button.addEventListener('contextmenu',e=>e.preventDefault());
 }
+const joystick=$('flightStick');
+const stickValue=event=>{const rect=joystick.getBoundingClientRect();return (event.clientX-rect.left-rect.width/2)/Math.max(1,rect.width/2-30);};
+joystick.addEventListener('pointerdown',event=>{event.preventDefault();if(stick.start(event.pointerId,stickValue(event))){joystick.setPointerCapture(event.pointerId);paintStick();}});
+joystick.addEventListener('pointermove',event=>{if(stick.pointer===event.pointerId){event.preventDefault();stick.move(event.pointerId,stickValue(event));paintStick();}});
+for(const type of ['pointerup','pointercancel','lostpointercapture'])joystick.addEventListener(type,event=>{if(stick.end(event.pointerId))paintStick();});
+joystick.addEventListener('contextmenu',event=>event.preventDefault());
+joystick.addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight'].includes(event.key)){event.preventDefault();event.stopPropagation();const value=event.key==='ArrowLeft'?-1:1;if(stick.pointer===null)stick.start('keyboard',value);else stick.move('keyboard',value);paintStick();}});
+joystick.addEventListener('keyup',event=>{if(['ArrowLeft','ArrowRight'].includes(event.key)){event.stopPropagation();stick.end('keyboard');paintStick();}});
 // Opening a menu or dialog, rotating, backgrounding, or losing a pointer must
 // never leave thrust or steering latched on.
 $('menubar').addEventListener('pointerdown',release,true);
+$('menubar').addEventListener('click',()=>queueMicrotask(()=>{if(menuOpen&&!window.MBTouchBridge.view().menu)setMenu(false);}));
 window.addEventListener('blur',release);
 window.addEventListener('pagehide',showResume);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)showResume();});
 window.addEventListener('resize',()=>{release();layout();});
 window.visualViewport?.addEventListener('resize',layout);
+document.addEventListener('fullscreenchange',()=>{release();layout();});
 portrait.addEventListener('change',()=>{release();if(portrait.matches)showResume();layout();});
 
 const preparedDialogs=new WeakSet();
@@ -118,7 +143,7 @@ function sync(){
  if(!started)return;
  const view=window.MBTouchBridge.view(),chest=!!$('chestAnswer');
  document.body.classList.toggle('flight-layout',['cave','blaster','bonus'].includes(view.scene)&&!chest);
- let mode=chest?'answer':view.modal||view.menu?'none':['cave','blaster','bonus'].includes(view.scene)?'flight':view.scene==='recycler'?'recycler':view.scene==='movie'?'movie':$('answer')?'answer':view.scene==='zapper'?'zapper':'none';
+ let mode=chest?'answer':menuOpen||view.modal||view.menu?'none':['cave','blaster','bonus'].includes(view.scene)?'flight':view.scene==='recycler'?'recycler':view.scene==='movie'?'movie':$('answer')?'answer':view.scene==='zapper'?'zapper':'none';
  if(mode!==lastMode||view.generation!==lastGeneration){release();lastMode=mode;lastGeneration=view.generation;
   $('controls').dataset.mode=mode;app.dataset.scene=view.scene;
   $('controls').hidden=view.scene==='recycler';
@@ -142,17 +167,10 @@ function layout(){
  const height=window.visualViewport?.height||innerHeight;
  document.documentElement.style.setProperty('--visible-height',height+'px');
  const wide=innerWidth>height*1.3&&height<600;document.body.classList.toggle('landscape-phone',wide);
- const flight=document.body.classList.contains('flight-layout'),answer=document.body.classList.contains('answer-layout'),padding=getComputedStyle(document.body);
- const answerSide=wide?200:250;app.style.setProperty('--answer-control-width',answerSide+'px');
- const availableWidth=Math.min(1100,innerWidth-parseFloat(padding.paddingLeft)-parseFloat(padding.paddingRight));
- const side=Math.min(144,Math.max(100,availableWidth*.14));app.style.setProperty('--side-control-width',side+'px');
- const steering=Math.min(240,Math.max(200,availableWidth*.26));app.style.setProperty('--steering-control-width',steering+'px');
- const recycler=document.body.classList.contains('recycler-layout');
- const controlsHeight=$('controls').getBoundingClientRect().height;
- const verticalPadding=parseFloat(padding.paddingTop)+parseFloat(padding.paddingBottom);
- const available=wide||flight||answer||recycler?Math.max(140,height-verticalPadding-72):Math.max(140,height-verticalPadding-controlsHeight-86);
- const width=Math.min(960,availableWidth-(flight?side+steering+28:answer?answerSide+18:wide&&!recycler?218:0),available*640/425);
- app.style.setProperty('--board-width',Math.max(120,width)+'px');
+ const padding=getComputedStyle(document.body),width=window.visualViewport?.width||innerWidth;
+ const frame=fitMobileGame(width,height,{left:parseFloat(padding.paddingLeft),right:parseFloat(padding.paddingRight),top:parseFloat(padding.paddingTop),bottom:parseFloat(padding.paddingBottom)});
+ for(const [name,value] of Object.entries(frame))app.style.setProperty('--board-'+name,value+'px');
+ window.MBMobileBackdrop.resize(width,height,frame);paintStick();
 }
 new ResizeObserver(layout).observe($('controls'));
 layout();prepare();

@@ -1,3 +1,8 @@
+function paintMobileBackground(id,y,sourceY,preserveCenter=false){
+ const image=img(id);
+ if(window.MBMobileBackdrop&&image.complete&&image.naturalWidth){window.MBMobileBackdrop.paint(image,sourceY,preserveCenter);if(!preserveCenter)return;}
+ draw(id,0,y);
+}
 window.MBTouchBridge=Object.freeze({
  hold(key,down){
   if(!['ArrowLeft','ArrowRight',' '].includes(key))return;
@@ -6,6 +11,7 @@ window.MBTouchBridge=Object.freeze({
   pointer.mode='keyboard';pointer.down=false;keys.add(key);
  },
  release(){keys.clear();pointer.down=false;},
+ closeMenu(){closeMenus();},
  continueMovie(){if(state.scene==='movie'&&!state.modal&&!state.menu&&!window.MBMobilePaused)nextLine();},
  pause(paused){
   window.MBMobilePaused=!!paused;keys.clear();pointer.down=false;previous=Date.now();
