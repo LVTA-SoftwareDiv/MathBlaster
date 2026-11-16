@@ -4,7 +4,7 @@ The shared game source, original artwork and audio, Mac and Windows hosts, USB l
 
 ## Play on iPhone or iPad
 
-[Open the touch edition](https://math-blaster-spot-touch.lehigh-valle-5669.chatgpt.site). This hosted copy is private and requires its owner’s ChatGPT sign-in for the initial download.
+[Open the touch edition](https://math-blaster-spot-touch.lehigh-valle-5669.chatgpt.site). The game is public; no sign-in is required.
 
 The mobile edition requires **landscape orientation**. In portrait, the game pauses behind a rotate-device screen. Safari does not need to support orientation locking for this requirement to work.
 
